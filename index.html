@@ -188,12 +188,48 @@
     .sync-chip.error { color: #b3261e; border-color: #f0c4c0; background: #fff6f5; }
     .sync-chip[hidden] { display: none; }
 
-    .gdoc-exit { position: absolute; top: 12px; right: 18px; z-index: 5; padding: 8px 14px; border: 0; border-radius: 999px; background: rgba(24, 35, 59, .88); color: #fff; font: 750 .82rem system-ui, sans-serif; cursor: pointer; box-shadow: 0 6px 18px rgba(0,0,0,.3); }
-    .gdoc-exit:hover { background: #18233b; }
+    .gdoc-exit { padding: 7px 14px; border: 1px solid #cfd9ee; border-radius: 10px; background: #fff; color: #27407f; font: 750 .82rem system-ui, sans-serif; cursor: pointer; }
+    .gdoc-exit:hover { background: #eaf0ff; }
     .gdoc-exit[hidden] { display: none; }
-    .gdoc-stage.is-full { position: fixed; inset: 0; z-index: 1000; border: 0; border-radius: 0; background: #fff; }
-    .gdoc-stage.is-full .gdoc-frame { height: 100vh; height: 100dvh; min-height: 0; }
+    .gdoc-stage.is-full { position: fixed; inset: 0; z-index: 1000; display: flex; flex-direction: column; border: 0; border-radius: 0; background: #eef2fb; box-shadow: none; }
+    .gdoc-stage.is-full .gdoc-exit { align-self: flex-end; margin: 8px 12px; flex: none; }
+    .gdoc-stage.is-full .gdoc-frame { flex: 1; height: auto; min-height: 0; }
     body.gdoc-locked { overflow: hidden; }
+
+    .cs-toast { position: fixed; left: 50%; bottom: 28px; z-index: 3000; padding: 10px 18px; border-radius: 999px; background: #18233b; color: #fff; font: 750 .88rem system-ui, sans-serif; box-shadow: 0 10px 30px rgba(0,0,0,.3); opacity: 0; transform: translate(-50%, 12px); pointer-events: none; transition: opacity .18s, transform .18s; }
+    .cs-toast.show { opacity: 1; transform: translate(-50%, 0); }
+    .cs-toast.bad { background: #b3261e; }
+    .card pre { cursor: pointer; }
+
+    .cs-panel { position: absolute; z-index: 20; display: flex; flex-direction: column; width: min(380px, calc(100vw - 24px)); max-height: min(72vh, 600px); overflow: hidden; border: 1px solid #cfd9ee; border-radius: 18px; background: #fff; box-shadow: 0 18px 50px rgba(20, 30, 60, .28); font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+    .cs-panel[data-corner="br"] { right: 16px; bottom: 16px; }
+    .cs-panel[data-corner="bl"] { left: 16px; bottom: 16px; }
+    .cs-panel[data-corner="tr"] { right: 16px; top: 56px; }
+    .cs-panel[data-corner="tl"] { left: 16px; top: 56px; }
+    .cs-panel.min { width: auto; max-height: none; }
+    .cs-panel.min .cs-body { display: none; }
+    .cs-head { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 10px 12px 10px 16px; background: linear-gradient(135deg, #3157d5, #6a4bd8); color: #fff; font-size: .92rem; }
+    .cs-tools { display: flex; gap: 4px; }
+    .cs-tools button { width: 30px; height: 30px; border: 0; border-radius: 8px; background: rgba(255,255,255,.18); color: #fff; font-size: 1rem; line-height: 1; cursor: pointer; }
+    .cs-tools button:hover { background: rgba(255,255,255,.3); }
+    .cs-body { display: flex; flex-direction: column; gap: 8px; min-height: 0; min-width: 0; padding: 10px; }
+    .cs-find { padding: 9px 12px; border: 1px solid #cfd9ee; border-radius: 10px; background: #f9fbff; color: #18233b; font: .9rem system-ui, sans-serif; }
+    .cs-find:focus { border-color: #6482e7; outline: 0; box-shadow: 0 0 0 3px rgba(67, 97, 223, .15); }
+    .cs-tabs { display: flex; flex-wrap: wrap; gap: 5px; }
+    .cs-tabs button { padding: 4px 11px; border: 1px solid #dce3ef; border-radius: 999px; background: #fff; color: #52617a; font: 750 .76rem system-ui, sans-serif; cursor: pointer; }
+    .cs-tabs button[aria-pressed="true"] { border-color: #3157d5; background: #3157d5; color: #fff; }
+    .cs-list { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; margin: 0; padding: 0 2px 2px 0; overflow-y: auto; list-style: none; overscroll-behavior: contain; }
+    .cs-item { min-width: 0; padding: 10px; border: 1px solid #e3e9f4; border-radius: 12px; background: #fbfcff; }
+    .cs-top { display: flex; align-items: center; gap: 8px; }
+    .cs-top b { flex: 1; min-width: 0; overflow-wrap: anywhere; color: #18233b; font-size: .88rem; line-height: 1.3; }
+    .cs-top small { color: #7a879e; font-size: .68rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+    .cs-copy { flex: none; padding: 4px 10px; border: 1px solid #cfd9ee; border-radius: 8px; background: #fff; color: #3157d5; font: 750 .75rem system-ui, sans-serif; cursor: pointer; }
+    .cs-copy:hover { background: #3157d5; border-color: #3157d5; color: #fff; }
+    .cs-item p { margin: 5px 0 0; color: #63728b; font-size: .8rem; line-height: 1.4; }
+    .cs-item pre { margin: 8px 0 0; padding: 9px 11px; overflow-x: auto; border-radius: 9px; background: #121a30; color: #d6def5; font: .78rem/1.55 ui-monospace, SFMono-Regular, Menlo, monospace; cursor: pointer; }
+    .cs-more { width: 100%; padding: 8px; border: 1px dashed #bfcff7; border-radius: 10px; background: #f4f7ff; color: #3157d5; font: 750 .8rem system-ui, sans-serif; cursor: pointer; }
+    .cs-none { padding: 18px; color: #7a879e; text-align: center; font-size: .88rem; }
+    @media (max-width: 560px) { .cs-panel { width: calc(100vw - 16px); max-height: 56vh; } .cs-panel[data-corner] { left: 8px; right: 8px; } .cs-panel[data-corner="tl"], .cs-panel[data-corner="tr"] { top: 52px; bottom: auto; } .cs-panel[data-corner="bl"], .cs-panel[data-corner="br"] { bottom: 8px; top: auto; } }
 
     /* Google Docs notebook */
     .notebook-kicker { margin-bottom: 4px; color: #385bd6; font-size: .7rem; font-weight: 850; letter-spacing: .14em; text-transform: uppercase; }
@@ -205,7 +241,7 @@
     .gdoc-actions { display: flex; flex-wrap: wrap; gap: 8px; }
     .gdoc-actions[hidden], .gdoc-stage[hidden], .gdoc-setup[hidden] { display: none; }
     .gdoc-btn, .gdoc-primary {
-      display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 9px 14px;
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 9px 14px; min-height: 38px; line-height: 1.2; box-sizing: border-box;
       border: 1px solid #cfd9ee; border-radius: 11px; background: #fff; color: #27407f;
       font: 700 .85rem system-ui, -apple-system, sans-serif; text-decoration: none; cursor: pointer;
       transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
@@ -3436,7 +3472,7 @@ URIError — An encodeURI() error has occurred
         </div>
         <div class="gdoc-actions" hidden>
           <a class="gdoc-btn" data-gdoc-open target="_blank" rel="noopener noreferrer">Open in Google Docs ↗</a>
-          <button type="button" class="gdoc-btn" data-gdoc-full aria-pressed="false">⛶ Full screen</button>
+          <button type="button" class="gdoc-btn" data-gdoc-full aria-pressed="false">Full screen</button>
           <button type="button" class="gdoc-btn" data-gdoc-reload>↻ Reload</button>
           <button type="button" class="gdoc-btn" data-gdoc-change>Change doc</button>
         </div>
@@ -3559,7 +3595,7 @@ const original=[{&quot;day&quot;: 1, &quot;title&quot;: &quot;Day 1 - Beginner -
         </div>
         <div class="gdoc-actions" hidden>
           <a class="gdoc-btn" data-gdoc-open target="_blank" rel="noopener noreferrer">Open in Google Docs ↗</a>
-          <button type="button" class="gdoc-btn" data-gdoc-full aria-pressed="false">⛶ Full screen</button>
+          <button type="button" class="gdoc-btn" data-gdoc-full aria-pressed="false">Full screen</button>
           <button type="button" class="gdoc-btn" data-gdoc-reload>↻ Reload</button>
           <button type="button" class="gdoc-btn" data-gdoc-change>Change doc</button>
         </div>
@@ -3710,17 +3746,30 @@ const original=[{&quot;day&quot;: 1, &quot;title&quot;: &quot;Day 1 - Beginner -
       });
       empty.style.display = shown ? "none" : "block";
     });
+    window.copyText = async text => {
+      try { await navigator.clipboard.writeText(text); return true; } catch {}
+      try {
+        const area = document.createElement("textarea");
+        area.value = text; area.setAttribute("readonly", ""); area.style.cssText = "position:fixed;top:-100px;opacity:0";
+        document.body.append(area); area.select(); const ok = document.execCommand("copy"); area.remove(); return ok;
+      } catch { return false; }
+    };
+    window.showToast = (message, bad) => {
+      let toast = document.querySelector(".cs-toast");
+      if (!toast) { toast = document.createElement("div"); toast.className = "cs-toast"; toast.setAttribute("role", "status"); document.body.append(toast); }
+      toast.textContent = message; toast.classList.toggle("bad", !!bad); toast.classList.add("show");
+      clearTimeout(toast._t); toast._t = setTimeout(() => toast.classList.remove("show"), 1500);
+    };
+    document.querySelectorAll(".card pre").forEach(pre => { pre.title = "Click to copy (select text to copy just part)"; });
     document.addEventListener("click", async event => {
       const button = event.target.closest(".copy");
-      if (!button) return;
-      const code = button.closest(".card").querySelector("pre code").innerText;
-      try {
-        await navigator.clipboard.writeText(code);
-        button.textContent = "Copied!";
-      } catch {
-        button.textContent = "Select code to copy";
-      }
-      window.setTimeout(() => { button.textContent = "Copy"; }, 1600);
+      const block = !button && event.target.closest(".card pre");
+      if (!button && !block) return;
+      if (block && String(getSelection()).trim()) return;
+      const code = (button || block).closest(".card").querySelector("pre code").textContent;
+      const ok = await window.copyText(code);
+      showToast(ok ? "Copied to clipboard ✓" : "Couldn’t copy — select the code and press Ctrl/Cmd+C", !ok);
+      if (button) { button.textContent = ok ? "Copied!" : "Select code"; window.setTimeout(() => { button.textContent = "Copy"; }, 1600); }
     });
   </script>
 
@@ -3742,6 +3791,85 @@ const original=[{&quot;day&quot;: 1, &quot;title&quot;: &quot;Day 1 - Beginner -
       return { readOnly: false, open: `https://docs.google.com/document/d/${id}/edit`,
                embed: `https://docs.google.com/document/d/${id}/edit?embedded=true` };
     }
+    /* Corner cheat sheet shown while a doc is full screen */
+    const CS_STATE = "cs-panel-v1";
+    let csPanel = null, csData = null;
+    const csLoad = () => { try { return { corner: "br", min: false, ...JSON.parse(localStorage.getItem(CS_STATE) || "{}") }; } catch { return { corner: "br", min: false }; } };
+    const csSave = st => { try { localStorage.setItem(CS_STATE, JSON.stringify(st)); } catch {} };
+    function csCollect() {
+      if (csData) return csData;
+      csData = [];
+      document.querySelectorAll(".section").forEach(sec => {
+        const lang = (sec.querySelector("h2")?.textContent || sec.id).trim();
+        sec.querySelectorAll(".card").forEach(card => {
+          const code = card.querySelector("pre code")?.textContent; if (!code) return;
+          csData.push({
+            lang, code,
+            title: (card.querySelector("h3")?.textContent || "").trim(),
+            desc: (card.querySelector("p:not(.ref-group)")?.textContent || "").trim(),
+            group: (card.querySelector(".ref-group")?.textContent || "").trim()
+          });
+        });
+      });
+      return csData;
+    }
+    function buildCheatPanel() {
+      const data = csCollect(), st = csLoad();
+      const langs = ["All", ...new Set(data.map(d => d.lang))];
+      let lang = "All", term = "", shown = 40;
+      const el = document.createElement("aside");
+      el.className = "cs-panel"; el.setAttribute("aria-label", "Cheat sheet");
+      el.innerHTML = `
+        <header class="cs-head"><b>📚 Cheat sheet</b>
+          <span class="cs-tools"><button type="button" data-cs-corner title="Move to another corner">⤢</button><button type="button" data-cs-min title="Minimize / open" aria-expanded="true">–</button></span></header>
+        <div class="cs-body">
+          <input class="cs-find" type="search" placeholder="Search snippets…" aria-label="Search cheat sheet" autocomplete="off">
+          <div class="cs-tabs" role="tablist"></div>
+          <ul class="cs-list"></ul>
+        </div>`;
+      const tabsEl = el.querySelector(".cs-tabs"), listEl = el.querySelector(".cs-list"), find = el.querySelector(".cs-find");
+      langs.forEach(l => { const b = document.createElement("button"); b.type = "button"; b.textContent = l; b.dataset.lang = l; b.setAttribute("aria-pressed", String(l === lang)); tabsEl.append(b); });
+      function apply() {
+        el.dataset.corner = st.corner; el.classList.toggle("min", !!st.min);
+        el.querySelector("[data-cs-min]").setAttribute("aria-expanded", String(!st.min));
+        el.querySelector("[data-cs-min]").textContent = st.min ? "▢" : "–";
+      }
+      function render() {
+        const t = term.trim().toLowerCase();
+        const hits = data.filter(d => (lang === "All" || d.lang === lang) && (!t || (d.title + " " + d.desc + " " + d.code + " " + d.group).toLowerCase().includes(t)));
+        listEl.replaceChildren(...hits.slice(0, shown).map(d => {
+          const li = document.createElement("li"); li.className = "cs-item";
+          const top = document.createElement("div"); top.className = "cs-top";
+          const h = document.createElement("b"); h.textContent = d.title;
+          const tag = document.createElement("small"); tag.textContent = d.lang;
+          const copy = document.createElement("button"); copy.type = "button"; copy.className = "cs-copy"; copy.textContent = "Copy";
+          top.append(h, tag, copy); li.append(top);
+          if (d.desc) { const p = document.createElement("p"); p.textContent = d.desc; li.append(p); }
+          const pre = document.createElement("pre"); pre.textContent = d.code; pre.title = "Click to copy"; li.append(pre);
+          li._code = d.code; return li;
+        }));
+        if (hits.length > shown) { const more = document.createElement("li"); const b = document.createElement("button"); b.type = "button"; b.className = "cs-more"; b.textContent = `Show more (${hits.length - shown} left)`; b.addEventListener("click", () => { shown += 40; render(); }); more.append(b); listEl.append(more); }
+        if (!hits.length) { const none = document.createElement("li"); none.className = "cs-none"; none.textContent = "Nothing matches that search."; listEl.append(none); }
+      }
+      el.addEventListener("click", async event => {
+        const item = event.target.closest(".cs-item");
+        if ((event.target.closest(".cs-copy") || event.target.closest("pre")) && item) {
+          if (event.target.closest("pre") && String(getSelection()).trim()) return;
+          const ok = await window.copyText(item._code);
+          showToast(ok ? "Copied — paste it into your doc ✓" : "Couldn’t copy — select the code and press Ctrl/Cmd+C", !ok);
+          const b = item.querySelector(".cs-copy"); b.textContent = ok ? "Copied!" : "Select code"; setTimeout(() => { b.textContent = "Copy"; }, 1400);
+          return;
+        }
+        const tab = event.target.closest(".cs-tabs button");
+        if (tab) { lang = tab.dataset.lang; shown = 40; tabsEl.querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", String(b === tab))); render(); return; }
+        if (event.target.closest("[data-cs-corner]")) { const order = ["br", "bl", "tl", "tr"]; st.corner = order[(order.indexOf(st.corner) + 1) % 4]; csSave(st); apply(); return; }
+        if (event.target.closest("[data-cs-min]")) { st.min = !st.min; csSave(st); apply(); }
+      });
+      find.addEventListener("input", () => { term = find.value; shown = 40; render(); });
+      find.addEventListener("keydown", event => { if (event.key === "Escape" && find.value) { find.value = ""; term = ""; render(); event.stopPropagation(); event.preventDefault(); } });
+      apply(); render(); return el;
+    }
+
     document.querySelectorAll(".gdoc").forEach(panel => {
       const owner = panel.dataset.owner;
       const form = panel.querySelector(".gdoc-setup"), input = panel.querySelector(".gdoc-input");
@@ -3775,15 +3903,14 @@ const original=[{&quot;day&quot;: 1, &quot;title&quot;: &quot;Day 1 - Beginner -
       const fullBtn = panel.querySelector("[data-gdoc-full]"), exitBtn = panel.querySelector("[data-gdoc-exit]");
       function setFull(on) {
         stage.classList.toggle("is-full", on); exitBtn.hidden = !on; fullBtn.setAttribute("aria-pressed", String(on));
-        fullBtn.textContent = on ? "⛶ Exit full screen" : "⛶ Full screen";
+        fullBtn.textContent = on ? "Exit full screen" : "Full screen";
         document.body.classList.toggle("gdoc-locked", on);
-        if (on && stage.requestFullscreen && !document.fullscreenElement) stage.requestFullscreen().catch(() => {});
-        if (!on && document.fullscreenElement === stage) document.exitFullscreen().catch(() => {});
+        if (on) { csPanel = csPanel || buildCheatPanel(); stage.append(csPanel); }
+        else if (csPanel) csPanel.remove();
       }
       fullBtn.addEventListener("click", () => setFull(!stage.classList.contains("is-full")));
       exitBtn.addEventListener("click", () => setFull(false));
-      document.addEventListener("keydown", event => { if (event.key === "Escape" && stage.classList.contains("is-full") && !document.fullscreenElement) setFull(false); });
-      document.addEventListener("fullscreenchange", () => { if (!document.fullscreenElement && stage.classList.contains("is-full")) setFull(false); });
+      document.addEventListener("keydown", event => { if (event.key === "Escape" && stage.classList.contains("is-full") && !event.defaultPrevented) setFull(false); });
       panel.querySelector("[data-gdoc-reload]").addEventListener("click", () => {
         loading.hidden = false; const current = frame.src; frame.src = "about:blank"; setTimeout(() => { frame.src = current; }, 50);
       });
