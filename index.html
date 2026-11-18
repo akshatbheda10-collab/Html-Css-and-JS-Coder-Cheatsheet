@@ -188,6 +188,13 @@
     .sync-chip.error { color: #b3261e; border-color: #f0c4c0; background: #fff6f5; }
     .sync-chip[hidden] { display: none; }
 
+    .gdoc-exit { position: absolute; top: 12px; right: 18px; z-index: 5; padding: 8px 14px; border: 0; border-radius: 999px; background: rgba(24, 35, 59, .88); color: #fff; font: 750 .82rem system-ui, sans-serif; cursor: pointer; box-shadow: 0 6px 18px rgba(0,0,0,.3); }
+    .gdoc-exit:hover { background: #18233b; }
+    .gdoc-exit[hidden] { display: none; }
+    .gdoc-stage.is-full { position: fixed; inset: 0; z-index: 1000; border: 0; border-radius: 0; background: #fff; }
+    .gdoc-stage.is-full .gdoc-frame { height: 100vh; height: 100dvh; min-height: 0; }
+    body.gdoc-locked { overflow: hidden; }
+
     /* Google Docs notebook */
     .notebook-kicker { margin-bottom: 4px; color: #385bd6; font-size: .7rem; font-weight: 850; letter-spacing: .14em; text-transform: uppercase; }
     .gdoc-msg:empty { display: none; }
@@ -3429,6 +3436,7 @@ URIError — An encodeURI() error has occurred
         </div>
         <div class="gdoc-actions" hidden>
           <a class="gdoc-btn" data-gdoc-open target="_blank" rel="noopener noreferrer">Open in Google Docs ↗</a>
+          <button type="button" class="gdoc-btn" data-gdoc-full aria-pressed="false">⛶ Full screen</button>
           <button type="button" class="gdoc-btn" data-gdoc-reload>↻ Reload</button>
           <button type="button" class="gdoc-btn" data-gdoc-change>Change doc</button>
         </div>
@@ -3442,6 +3450,7 @@ URIError — An encodeURI() error has occurred
         <p class="gdoc-msg" role="status" aria-live="polite"></p>
       </form>
       <div class="gdoc-stage" hidden>
+        <button type="button" class="gdoc-exit" data-gdoc-exit hidden>✕ Exit full screen</button>
         <div class="gdoc-loading">Loading your document…</div>
         <iframe class="gdoc-frame" title="Nikhil’s Google Doc notes" allow="clipboard-read; clipboard-write" referrerpolicy="no-referrer-when-downgrade"></iframe>
       </div>
@@ -3550,6 +3559,7 @@ const original=[{&quot;day&quot;: 1, &quot;title&quot;: &quot;Day 1 - Beginner -
         </div>
         <div class="gdoc-actions" hidden>
           <a class="gdoc-btn" data-gdoc-open target="_blank" rel="noopener noreferrer">Open in Google Docs ↗</a>
+          <button type="button" class="gdoc-btn" data-gdoc-full aria-pressed="false">⛶ Full screen</button>
           <button type="button" class="gdoc-btn" data-gdoc-reload>↻ Reload</button>
           <button type="button" class="gdoc-btn" data-gdoc-change>Change doc</button>
         </div>
@@ -3563,6 +3573,7 @@ const original=[{&quot;day&quot;: 1, &quot;title&quot;: &quot;Day 1 - Beginner -
         <p class="gdoc-msg" role="status" aria-live="polite"></p>
       </form>
       <div class="gdoc-stage" hidden>
+        <button type="button" class="gdoc-exit" data-gdoc-exit hidden>✕ Exit full screen</button>
         <div class="gdoc-loading">Loading your document…</div>
         <iframe class="gdoc-frame" title="Akshat’s Google Doc notes" allow="clipboard-read; clipboard-write" referrerpolicy="no-referrer-when-downgrade"></iframe>
       </div>
@@ -3761,6 +3772,18 @@ const original=[{&quot;day&quot;: 1, &quot;title&quot;: &quot;Day 1 - Beginner -
         try { input.value = localStorage.getItem(GDOC_KEY(owner)) || ""; } catch {}
         setMsg(""); showSetup();
       });
+      const fullBtn = panel.querySelector("[data-gdoc-full]"), exitBtn = panel.querySelector("[data-gdoc-exit]");
+      function setFull(on) {
+        stage.classList.toggle("is-full", on); exitBtn.hidden = !on; fullBtn.setAttribute("aria-pressed", String(on));
+        fullBtn.textContent = on ? "⛶ Exit full screen" : "⛶ Full screen";
+        document.body.classList.toggle("gdoc-locked", on);
+        if (on && stage.requestFullscreen && !document.fullscreenElement) stage.requestFullscreen().catch(() => {});
+        if (!on && document.fullscreenElement === stage) document.exitFullscreen().catch(() => {});
+      }
+      fullBtn.addEventListener("click", () => setFull(!stage.classList.contains("is-full")));
+      exitBtn.addEventListener("click", () => setFull(false));
+      document.addEventListener("keydown", event => { if (event.key === "Escape" && stage.classList.contains("is-full") && !document.fullscreenElement) setFull(false); });
+      document.addEventListener("fullscreenchange", () => { if (!document.fullscreenElement && stage.classList.contains("is-full")) setFull(false); });
       panel.querySelector("[data-gdoc-reload]").addEventListener("click", () => {
         loading.hidden = false; const current = frame.src; frame.src = "about:blank"; setTimeout(() => { frame.src = current; }, 50);
       });
