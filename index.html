@@ -231,6 +231,35 @@
     .cs-none { padding: 18px; color: #7a879e; text-align: center; font-size: .88rem; }
     @media (max-width: 560px) { .cs-panel { width: calc(100vw - 16px); max-height: 56vh; } .cs-panel[data-corner] { left: 8px; right: 8px; } .cs-panel[data-corner="tl"], .cs-panel[data-corner="tr"] { top: 52px; bottom: auto; } .cs-panel[data-corner="bl"], .cs-panel[data-corner="br"] { bottom: 8px; top: auto; } }
 
+
+    /* Projects (Python files per person) */
+    .pj-app { display: grid; grid-template-columns: 290px minmax(0, 1fr); gap: 16px; align-items: start; }
+    .pj-side { display: grid; gap: 10px; padding: 14px; border: 1px solid #dce3ef; border-radius: 18px; background: #f7f9ff; position: sticky; top: 70px; }
+    .pj-side .gdoc-primary, .pj-all { width: 100%; }
+    .pj-form { display: grid; }
+    .pj-form[hidden] { display: none; }
+    .pj-filebar { display: flex; align-items: flex-end; gap: 8px; padding: 0 26px; border-bottom: 1px solid #e3e9f4; background: #f9fbff; }
+    .pj-files { display: flex; flex: 1; min-width: 0; gap: 2px; padding-top: 8px; overflow-x: auto; scrollbar-width: thin; }
+    .pj-file { flex: none; max-width: 200px; padding: 8px 14px; overflow: hidden; border: 1px solid transparent; border-bottom: 0; border-radius: 10px 10px 0 0; background: transparent; color: #52617a; font: 650 .84rem ui-monospace, SFMono-Regular, Menlo, monospace; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
+    .pj-file:hover { background: #eaf0ff; }
+    .pj-file[aria-selected="true"] { border-color: #dce3ef; background: #121a30; color: #fff; }
+    .pj-addfile { flex: none; margin-bottom: 6px; padding: 5px 11px; border: 1px dashed #bfcff7; border-radius: 9px; background: #fff; color: #3157d5; font: 750 .78rem system-ui, sans-serif; cursor: pointer; }
+    .pj-addfile:hover { background: #eaf0ff; }
+    .pj-code { display: flex; min-width: 0; height: min(60vh, 520px); min-height: 340px; background: #121a30; }
+    .pj-gutter, .pj-text { margin: 0; padding: 16px 0; font: 14px/22px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    .pj-gutter { flex: none; min-width: 3.2em; padding-inline: 12px; overflow: hidden; border-right: 1px solid #243052; background: #0f1528; color: #5b6a90; text-align: right; user-select: none; }
+    .pj-text { flex: 1; min-width: 0; padding-inline: 16px; border: 0; background: transparent; color: #d6def5; caret-color: #8ab4ff; resize: none; white-space: pre; overflow: auto; tab-size: 4; }
+    .pj-text:focus { outline: 0; box-shadow: inset 0 0 0 2px rgba(124, 147, 255, .35); }
+    .pj-actions { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 26px; border-top: 1px solid #e3e9f4; background: #fff; }
+    .pj-status { color: #63728b; font-size: .82rem; font-weight: 650; }
+    .pj-status.ok { color: #19835f; }
+    .pj-status.error { color: #b3261e; }
+    @media (max-width: 820px) {
+      .pj-app { grid-template-columns: 1fr; }
+      .pj-side { position: static; }
+      .pj-filebar, .pj-actions { padding-inline: 14px; }
+    }
+
     /* Google Docs notebook */
     .notebook-kicker { margin-bottom: 4px; color: #385bd6; font-size: .7rem; font-weight: 850; letter-spacing: .14em; text-transform: uppercase; }
     .gdoc-msg:empty { display: none; }
@@ -3462,6 +3491,7 @@ URIError — An encodeURI() error has occurred
       <div class="nb-tabs" role="tablist" aria-label="Notebook type">
         <button type="button" role="tab" class="nb-tab" data-tab="doc" aria-selected="true">📄 Google Doc</button>
         <button type="button" role="tab" class="nb-tab" data-tab="cloud" aria-selected="false">☁️ Cloud notes</button>
+        <button type="button" role="tab" class="nb-tab" data-tab="projects" aria-selected="false">🐍 Projects</button>
       </div>
       <div class="nb-pane" data-pane="doc">
       <header class="gdoc-head">
@@ -3546,7 +3576,20 @@ create policy "club update" on notes for update using (true);
 create policy "club delete" on notes for delete using (true);
 
 drop policy if exists "club all" on app_state;
-create policy "club all" on app_state for all using (true) with check (true);</pre></div>
+create policy "club all" on app_state for all using (true) with check (true);
+
+create table if not exists projects (
+  id uuid primary key default gen_random_uuid(),
+  owner text not null,
+  name text not null default 'Untitled project',
+  files jsonb not null default '[]'::jsonb,
+  updated_at timestamptz default now()
+);
+
+alter table projects enable row level security;
+
+drop policy if exists "club all" on projects;
+create policy "club all" on projects for all using (true) with check (true);</pre></div>
           </details>
         </div>
         <div class="cloud-app" hidden>
@@ -3571,6 +3614,36 @@ create policy "club all" on app_state for all using (true) with check (true);</p
           </section>
         </div>
       </div>
+      <div class="nb-pane" data-pane="projects" hidden>
+        <div class="pj-app">
+          <aside class="cloud-side pj-side">
+            <button type="button" class="gdoc-primary" data-pj-new>＋ New project</button>
+            <ul class="cloud-list" data-pj-list></ul>
+            <button type="button" class="gdoc-btn pj-all" data-pj-export-all>⬇ Download all (.zip)</button>
+          </aside>
+          <section class="cloud-editor pj-editor">
+            <div class="cloud-empty" data-pj-empty><span aria-hidden="true">🐍</span><p>Loading your projects…</p></div>
+            <div class="pj-form" hidden>
+              <input class="cloud-title" data-pj-name placeholder="Project name" aria-label="Project name">
+              <div class="pj-filebar">
+                <div class="pj-files" role="tablist" aria-label="Files in this project" data-pj-files></div>
+                <button type="button" class="pj-addfile" data-pj-addfile title="Add a Python file">＋ File</button>
+              </div>
+              <div class="pj-code">
+                <pre class="pj-gutter" aria-hidden="true">1</pre>
+                <textarea class="pj-text" data-pj-text spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" wrap="off" aria-label="Python code"></textarea>
+              </div>
+              <div class="pj-actions">
+                <button type="button" class="gdoc-btn" data-pj-rename>Rename file</button>
+                <button type="button" class="gdoc-btn" data-pj-delfile>Delete file</button>
+                <button type="button" class="gdoc-btn" data-pj-dl-file>⬇ This file (.py)</button>
+                <button type="button" class="gdoc-btn" data-pj-dl-project>⬇ Project (.zip)</button>
+              </div>
+              <div class="cloud-foot"><span class="pj-status" aria-live="polite"></span><button type="button" class="cloud-del" data-pj-delete>Delete project</button></div>
+            </div>
+          </section>
+        </div>
+      </div>
     </div>
     <p>Track course sections and lesson progress in this personal planner.</p>
     <iframe class="planner-frame" title="Nikhil’s Python course planner" loading="lazy" srcdoc="&lt;!doctype html&gt;&lt;html lang=&quot;en&quot;&gt;&lt;head&gt;&lt;meta charset=&quot;utf-8&quot;&gt;&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width,initial-scale=1&quot;&gt;&lt;title&gt;Nikhil’s Python Course — Daily To‑Do&lt;/title&gt;&lt;style&gt;
@@ -3585,6 +3658,7 @@ const original=[{&quot;day&quot;: 1, &quot;title&quot;: &quot;Day 1 - Beginner -
       <div class="nb-tabs" role="tablist" aria-label="Notebook type">
         <button type="button" role="tab" class="nb-tab" data-tab="doc" aria-selected="true">📄 Google Doc</button>
         <button type="button" role="tab" class="nb-tab" data-tab="cloud" aria-selected="false">☁️ Cloud notes</button>
+        <button type="button" role="tab" class="nb-tab" data-tab="projects" aria-selected="false">🐍 Projects</button>
       </div>
       <div class="nb-pane" data-pane="doc">
       <header class="gdoc-head">
@@ -3669,7 +3743,20 @@ create policy "club update" on notes for update using (true);
 create policy "club delete" on notes for delete using (true);
 
 drop policy if exists "club all" on app_state;
-create policy "club all" on app_state for all using (true) with check (true);</pre></div>
+create policy "club all" on app_state for all using (true) with check (true);
+
+create table if not exists projects (
+  id uuid primary key default gen_random_uuid(),
+  owner text not null,
+  name text not null default 'Untitled project',
+  files jsonb not null default '[]'::jsonb,
+  updated_at timestamptz default now()
+);
+
+alter table projects enable row level security;
+
+drop policy if exists "club all" on projects;
+create policy "club all" on projects for all using (true) with check (true);</pre></div>
           </details>
         </div>
         <div class="cloud-app" hidden>
@@ -3690,6 +3777,36 @@ create policy "club all" on app_state for all using (true) with check (true);</p
               </div>
               <textarea data-f="body" placeholder="Write your lesson notes here…" aria-label="Lesson notes" spellcheck="true"></textarea>
               <div class="cloud-foot"><span class="cloud-status" aria-live="polite"></span><button type="button" class="cloud-del" data-cloud-delete>Delete note</button></div>
+            </div>
+          </section>
+        </div>
+      </div>
+      <div class="nb-pane" data-pane="projects" hidden>
+        <div class="pj-app">
+          <aside class="cloud-side pj-side">
+            <button type="button" class="gdoc-primary" data-pj-new>＋ New project</button>
+            <ul class="cloud-list" data-pj-list></ul>
+            <button type="button" class="gdoc-btn pj-all" data-pj-export-all>⬇ Download all (.zip)</button>
+          </aside>
+          <section class="cloud-editor pj-editor">
+            <div class="cloud-empty" data-pj-empty><span aria-hidden="true">🐍</span><p>Loading your projects…</p></div>
+            <div class="pj-form" hidden>
+              <input class="cloud-title" data-pj-name placeholder="Project name" aria-label="Project name">
+              <div class="pj-filebar">
+                <div class="pj-files" role="tablist" aria-label="Files in this project" data-pj-files></div>
+                <button type="button" class="pj-addfile" data-pj-addfile title="Add a Python file">＋ File</button>
+              </div>
+              <div class="pj-code">
+                <pre class="pj-gutter" aria-hidden="true">1</pre>
+                <textarea class="pj-text" data-pj-text spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" wrap="off" aria-label="Python code"></textarea>
+              </div>
+              <div class="pj-actions">
+                <button type="button" class="gdoc-btn" data-pj-rename>Rename file</button>
+                <button type="button" class="gdoc-btn" data-pj-delfile>Delete file</button>
+                <button type="button" class="gdoc-btn" data-pj-dl-file>⬇ This file (.py)</button>
+                <button type="button" class="gdoc-btn" data-pj-dl-project>⬇ Project (.zip)</button>
+              </div>
+              <div class="cloud-foot"><span class="pj-status" aria-live="polite"></span><button type="button" class="cloud-del" data-pj-delete>Delete project</button></div>
             </div>
           </section>
         </div>
@@ -4158,6 +4275,189 @@ const original=[{&quot;day&quot;: 1, &quot;title&quot;: &quot;Day 1 - Beginner -
           pages = pages.filter(p => p.id !== page.id); currentId = null; renderList();
           if (pages.length) select(pages[0].id); else { form.hidden = true; empty.hidden = false; empty.querySelector("p").textContent = "No notes yet. Press “New note” to start."; }
         } catch (err) { say("Couldn’t delete: " + (err.message || err), "error"); }
+      });
+      window.addEventListener("pagehide", () => { if (timer) { clearTimeout(timer); save(); } });
+    });
+    /* ---------- Projects: a folder of Python files saved per person ---------- */
+    const crcTable = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+    const crc32 = bytes => { let c = 0xFFFFFFFF; for (let i = 0; i < bytes.length; i++) c = crcTable[(c ^ bytes[i]) & 255] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; };
+    function makeZip(entries) {
+      const enc = new TextEncoder(), parts = [], central = []; let offset = 0;
+      const d = new Date(), dosTime = (d.getHours() << 11) | (d.getMinutes() << 5) | (d.getSeconds() >> 1), dosDate = ((d.getFullYear() - 1980) << 9) | ((d.getMonth() + 1) << 5) | d.getDate();
+      for (const e of entries) {
+        const name = enc.encode(e.path), data = enc.encode(e.text), crc = crc32(data);
+        const loc = new DataView(new ArrayBuffer(30));
+        loc.setUint32(0, 0x04034b50, true); loc.setUint16(4, 20, true); loc.setUint16(6, 0x0800, true); loc.setUint16(8, 0, true);
+        loc.setUint16(10, dosTime, true); loc.setUint16(12, dosDate, true); loc.setUint32(14, crc, true);
+        loc.setUint32(18, data.length, true); loc.setUint32(22, data.length, true); loc.setUint16(26, name.length, true); loc.setUint16(28, 0, true);
+        parts.push(loc.buffer, name, data);
+        const cen = new DataView(new ArrayBuffer(46));
+        cen.setUint32(0, 0x02014b50, true); cen.setUint16(4, 20, true); cen.setUint16(6, 20, true); cen.setUint16(8, 0x0800, true); cen.setUint16(10, 0, true);
+        cen.setUint16(12, dosTime, true); cen.setUint16(14, dosDate, true); cen.setUint32(16, crc, true); cen.setUint32(20, data.length, true); cen.setUint32(24, data.length, true);
+        cen.setUint16(28, name.length, true); cen.setUint32(42, offset, true);
+        central.push(cen.buffer, name);
+        offset += 30 + name.length + data.length;
+      }
+      const cenSize = central.reduce((n, b) => n + b.byteLength, 0);
+      const end = new DataView(new ArrayBuffer(22));
+      end.setUint32(0, 0x06054b50, true); end.setUint16(8, entries.length, true); end.setUint16(10, entries.length, true); end.setUint32(12, cenSize, true); end.setUint32(16, offset, true);
+      return new Blob([...parts, ...central, end.buffer], { type: "application/zip" });
+    }
+    const saveBlob = (blob, filename) => {
+      const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = filename;
+      document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 3000);
+    };
+    const safeName = n => String(n || "").replace(/[\\/:*?"<>|\u0000-\u001f]+/g, "_").trim().replace(/^\.+/, "") || "untitled";
+    const pyName = n => { let f = safeName(n).replace(/\s+/g, "_"); if (!/\.py$/i.test(f)) f += ".py"; return f; };
+    const toast = (m, bad) => (window.showToast ? window.showToast(m, bad) : alert(m));
+
+    document.querySelectorAll(".gdoc").forEach(panel => {
+      const owner = panel.dataset.owner, root = panel.querySelector('[data-pane="projects"]');
+      if (!root) return;
+      const $ = sel => root.querySelector(sel);
+      const listEl = $("[data-pj-list]"), emptyEl = $("[data-pj-empty]"), formEl = $(".pj-form"), nameEl = $("[data-pj-name]");
+      const filesEl = $("[data-pj-files]"), ta = $("[data-pj-text]"), gutter = $(".pj-gutter"), statusEl = $(".pj-status");
+      let projects = [], pid = null, fidx = 0, timer = null, started = false, leaveField = false;
+      const say = (t, kind = "") => { statusEl.textContent = t; statusEl.className = "pj-status " + kind; };
+      const cur = () => projects.find(p => p.id === pid);
+      const clock = () => new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+      const normalize = row => {
+        const files = (Array.isArray(row.files) ? row.files : []).filter(f => f && typeof f.name === "string").map(f => ({ name: f.name, code: String(f.code ?? "") }));
+        return { ...row, name: row.name || "Untitled project", files: files.length ? files : [{ name: "main.py", code: "" }] };
+      };
+      const showEmpty = text => { formEl.hidden = true; emptyEl.hidden = false; emptyEl.querySelector("p").textContent = text; };
+
+      panel.querySelector('.nb-tab[data-tab="projects"]').addEventListener("click", () => { if (!started) { started = true; load(); } });
+
+      async function load() {
+        if (!getConfig()) { showEmpty("Connect Supabase first (see the Cloud notes tab)."); return; }
+        showEmpty("Loading your projects…");
+        try {
+          const sb = await getClient();
+          const { data, error } = await sb.from("projects").select("*").eq("owner", owner).order("updated_at", { ascending: false });
+          if (error) throw error;
+          projects = (data || []).map(normalize); renderList();
+          if (projects.length) openProject(projects[0].id); else showEmpty("No projects yet. Press “New project” to start one.");
+        } catch (err) { showEmpty("Couldn’t load projects: " + (err.message || err) + " — did you run the latest setup SQL (it adds a projects table)?"); }
+      }
+      function renderList() {
+        listEl.replaceChildren(...projects.map(p => {
+          const li = document.createElement("li"), btn = document.createElement("button");
+          btn.type = "button"; btn.className = "cloud-item"; btn.dataset.id = p.id; btn.setAttribute("aria-current", String(p.id === pid));
+          const b = document.createElement("b"), sub = document.createElement("span");
+          b.textContent = p.name; sub.textContent = p.files.length + (p.files.length === 1 ? " file" : " files");
+          btn.append(b, sub); li.append(btn); return li;
+        }));
+      }
+      function renderFiles() {
+        const p = cur(); if (!p) return;
+        filesEl.replaceChildren(...p.files.map((f, i) => {
+          const b = document.createElement("button"); b.type = "button"; b.className = "pj-file"; b.setAttribute("role", "tab");
+          b.setAttribute("aria-selected", String(i === fidx)); b.dataset.i = i; b.textContent = f.name; b.title = f.name; return b;
+        }));
+      }
+      function updateGutter() { const n = ta.value.split("\n").length; gutter.textContent = Array.from({ length: n }, (_, i) => i + 1).join("\n"); gutter.scrollTop = ta.scrollTop; }
+      function showFile() { const p = cur(); if (!p) return; ta.value = p.files[fidx]?.code ?? ""; updateGutter(); ta.scrollTop = 0; gutter.scrollTop = 0; }
+      async function openProject(id) {
+        await flush();
+        const p = projects.find(x => x.id === id); if (!p) return;
+        pid = id; fidx = 0; emptyEl.hidden = true; formEl.hidden = false; nameEl.value = p.name;
+        renderList(); renderFiles(); showFile(); say("");
+      }
+      async function flush() { if (timer) { clearTimeout(timer); timer = null; await save(); } }
+      function schedule() { say("Typing…"); clearTimeout(timer); timer = setTimeout(() => { timer = null; save(); }, 700); }
+      async function save() {
+        const p = cur(); if (!p) return;
+        const patch = { name: p.name, files: p.files, updated_at: new Date().toISOString() };
+        say("Saving…");
+        try {
+          const sb = await getClient(); const { error } = await sb.from("projects").update(patch).eq("id", p.id);
+          if (error) throw error; p.updated_at = patch.updated_at; say("Saved to Supabase ✓ " + clock(), "ok");
+        } catch (err) { say("Couldn’t save: " + (err.message || err), "error"); }
+      }
+
+      /* editor behaviour */
+      const insertText = text => { ta.focus(); if (!document.execCommand("insertText", false, text)) { ta.setRangeText(text, ta.selectionStart, ta.selectionEnd, "end"); ta.dispatchEvent(new Event("input", { bubbles: true })); } };
+      ta.addEventListener("input", () => { const p = cur(); if (!p) return; p.files[fidx].code = ta.value; updateGutter(); schedule(); });
+      ta.addEventListener("scroll", () => { gutter.scrollTop = ta.scrollTop; });
+      ta.addEventListener("blur", () => { leaveField = false; });
+      ta.addEventListener("keydown", event => {
+        if (event.key === "Escape") { leaveField = true; return; }
+        if (event.key === "Tab" && !event.shiftKey && !leaveField && !event.ctrlKey && !event.metaKey && !event.altKey) { event.preventDefault(); insertText("    "); return; }
+        if (event.key === "Enter" && !event.shiftKey && !event.ctrlKey && !event.metaKey && !event.altKey) {
+          const v = ta.value, pos = ta.selectionStart, line = v.slice(v.lastIndexOf("\n", pos - 1) + 1, pos);
+          let indent = line.match(/^[ \t]*/)[0];
+          if (/:\s*$/.test(line)) indent += "    ";
+          else if (line.trim() === "" && indent.length >= 4) indent = indent.slice(0, -4);
+          event.preventDefault(); insertText("\n" + indent); return;
+        }
+        if (event.key === "Backspace" && ta.selectionStart === ta.selectionEnd && !event.ctrlKey && !event.metaKey && !event.altKey) {
+          const v = ta.value, pos = ta.selectionStart, line = v.slice(v.lastIndexOf("\n", pos - 1) + 1, pos);
+          if (line.length >= 4 && /^ +$/.test(line) && line.length % 4 === 0) { event.preventDefault(); ta.setSelectionRange(pos - 4, pos); document.execCommand("delete"); return; }
+        }
+        leaveField = false;
+      });
+      nameEl.addEventListener("input", () => { const p = cur(); if (!p) return; p.name = nameEl.value || "Untitled project"; renderList(); schedule(); });
+      filesEl.addEventListener("click", async event => {
+        const b = event.target.closest(".pj-file"); if (!b) return;
+        await flush(); fidx = Number(b.dataset.i); renderFiles(); showFile(); ta.focus();
+      });
+      listEl.addEventListener("click", event => { const b = event.target.closest(".cloud-item"); if (b) openProject(b.dataset.id); });
+
+      /* project + file actions */
+      $("[data-pj-new]").addEventListener("click", async () => {
+        await flush();
+        try {
+          const sb = await getClient();
+          const { data, error } = await sb.from("projects").insert({ owner, name: "New project", files: [{ name: "main.py", code: 'print("Hello, world!")\n' }] }).select().single();
+          if (error) throw error;
+          const p = normalize(data); projects.unshift(p); await openProject(p.id); nameEl.focus(); nameEl.select();
+        } catch (err) { showEmpty("Couldn’t create a project: " + (err.message || err)); }
+      });
+      $("[data-pj-delete]").addEventListener("click", async () => {
+        const p = cur(); if (!p || !confirm("Delete the project “" + p.name + "” and all its files? This can’t be undone.")) return;
+        clearTimeout(timer); timer = null;
+        try {
+          const sb = await getClient(); const { error } = await sb.from("projects").delete().eq("id", p.id); if (error) throw error;
+          projects = projects.filter(x => x.id !== p.id); pid = null; renderList();
+          if (projects.length) openProject(projects[0].id); else showEmpty("No projects yet. Press “New project” to start one.");
+        } catch (err) { say("Couldn’t delete: " + (err.message || err), "error"); }
+      });
+      $("[data-pj-addfile]").addEventListener("click", () => {
+        const p = cur(); if (!p) return;
+        const raw = prompt("Name your new file (for example, helpers.py):"); if (!raw) return;
+        const name = pyName(raw);
+        if (p.files.some(f => f.name.toLowerCase() === name.toLowerCase())) { toast("That file name is already in this project.", true); return; }
+        p.files.push({ name, code: "" }); fidx = p.files.length - 1; renderFiles(); renderList(); showFile(); ta.focus(); schedule();
+      });
+      $("[data-pj-rename]").addEventListener("click", () => {
+        const p = cur(); if (!p) return;
+        const raw = prompt("Rename this file:", p.files[fidx].name); if (!raw) return;
+        const name = pyName(raw);
+        if (p.files.some((f, i) => i !== fidx && f.name.toLowerCase() === name.toLowerCase())) { toast("That file name is already in this project.", true); return; }
+        p.files[fidx].name = name; renderFiles(); schedule();
+      });
+      $("[data-pj-delfile]").addEventListener("click", () => {
+        const p = cur(); if (!p) return;
+        if (p.files.length <= 1) { toast("A project needs at least one file.", true); return; }
+        if (!confirm("Delete “" + p.files[fidx].name + "”?")) return;
+        p.files.splice(fidx, 1); fidx = Math.max(0, fidx - 1); renderFiles(); renderList(); showFile(); schedule();
+      });
+      $("[data-pj-dl-file]").addEventListener("click", () => { const p = cur(); if (!p) return; const f = p.files[fidx]; saveBlob(new Blob([f.code], { type: "text/x-python" }), f.name); });
+      $("[data-pj-dl-project]").addEventListener("click", () => {
+        const p = cur(); if (!p) return;
+        saveBlob(makeZip(p.files.map(f => ({ path: safeName(p.name) + "/" + f.name, text: f.code }))), safeName(p.name) + ".zip");
+      });
+      $("[data-pj-export-all]").addEventListener("click", async () => {
+        await flush();
+        if (!projects.length) { toast("You don’t have any projects yet.", true); return; }
+        const used = new Map(), entries = [];
+        projects.forEach(p => {
+          const base = safeName(p.name), n = (used.get(base.toLowerCase()) || 0) + 1; used.set(base.toLowerCase(), n);
+          const folder = n === 1 ? base : base + " (" + n + ")";
+          p.files.forEach(f => entries.push({ path: folder + "/" + f.name, text: f.code }));
+        });
+        saveBlob(makeZip(entries), owner + "-python-projects.zip");
       });
       window.addEventListener("pagehide", () => { if (timer) { clearTimeout(timer); save(); } });
     });
